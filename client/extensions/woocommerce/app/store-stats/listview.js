@@ -12,7 +12,7 @@ import { moment, translate } from 'i18n-calypso';
 import Main from 'components/main';
 import HeaderCake from 'components/header-cake';
 import { getSelectedSiteId, getSelectedSiteSlug } from 'state/ui/selectors';
-import Chart from './store-stats-chart';
+import StoreStatsList from './store-stats-list';
 import StatsPeriodNavigation from 'my-sites/stats/stats-period-navigation';
 import DatePicker from 'my-sites/stats/stats-date-picker';
 
@@ -51,10 +51,11 @@ class StoreStats extends Component {
 		const { path, siteId, slug, startDate, type, unit } = this.props;
 		const today = moment().format( 'YYYY-MM-DD' );
 		const selectedDate = startDate || today;
-		const ordersQuery = {
+		const listviewQuery = {
 			unit,
-			date: today,
-			quantity: '30'
+			date: selectedDate,
+			quantity: '30',
+			limit: '100'
 		};
 
 		return (
@@ -68,11 +69,18 @@ class StoreStats extends Component {
 					<DatePicker
 						period={ unit }
 						date={ selectedDate }
-						query={ ordersQuery }
-						statsType="statsOrders"
+						query={ listviewQuery }
+						statsType="statsTopSellers"
 						showQueryDate
 					/>
 				</StatsPeriodNavigation>
+				<StoreStatsList
+					path={ path }
+					query={ listviewQuery }
+					selectedDate={ selectedDate }
+					siteId={ siteId }
+					unit={ unit }
+				/>
 			</Main>
 		);
 	}
