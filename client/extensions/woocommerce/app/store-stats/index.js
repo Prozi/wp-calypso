@@ -33,7 +33,7 @@ class StoreStats extends Component {
 		};
 		return (
 			<Main className="store-stats woocommerce" wideLayout={ true }>
-				<Navigation unit={ unit } type="orders" slug={ slug } />
+				<Navigation unit={ unit } type={ type } slug={ slug } />
 				<Chart
 					path={ path }
 					query={ ordersQuery }
