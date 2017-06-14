@@ -11,6 +11,7 @@ export const topProducts = {
 		{ key: 'total', title: translate( 'Total' ) },
 	],
 	empty: translate( 'No products found' ),
+	statsType: 'statsTopSellers',
 };
 
 export const topCategories = {
@@ -21,6 +22,7 @@ export const topCategories = {
 		{ key: 'total', title: translate( 'Total' ) },
 	],
 	empty: translate( 'No categories found' ),
+	statsType: 'statsTopCategories',
 };
 
 export const topCoupons = {
@@ -31,6 +33,7 @@ export const topCoupons = {
 		{ key: 'total', title: translate( 'Total' ) },
 	],
 	empty: translate( 'No coupons found' ),
+	statsType: 'statsTopCoupons',
 };
 
 export const UNITS = {

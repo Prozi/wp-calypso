@@ -733,6 +733,20 @@ export const normalizers = {
 		} );
 	},
 
+	statsTopCategories( payload ) {
+		if ( ! payload || ! payload.data ) {
+			return [];
+		}
+		return payload.data;
+	},
+
+	statsTopCoupons( payload ) {
+		if ( ! payload || ! payload.data ) {
+			return [];
+		}
+		return payload.data;
+	},
+
 	/*
 	 * Returns a normalized statsSearchTerms array, ready for use in stats-module
 	 *

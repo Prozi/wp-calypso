@@ -314,6 +314,32 @@ UndocumentedSite.prototype.statsTopSellers = function( query ) {
 };
 
 /**
+ * Requests Store top-* lists
+ *
+ * @param {object} query query parameters
+ * @return {Promise} A Promise to resolve when complete.
+ */
+UndocumentedSite.prototype.statsTopCategories = function( query ) {
+	return this.wpcom.req.get( {
+		path: `/sites/${ this._id }/stats/top-product-categories-by-usage`,
+		apiNamespace: 'wpcom/v2',
+	}, query );
+};
+
+/**
+ * Requests Store top-* lists
+ *
+ * @param {object} query query parameters
+ * @return {Promise} A Promise to resolve when complete.
+ */
+UndocumentedSite.prototype.statsTopCoupons = function( query ) {
+	return this.wpcom.req.get( {
+		path: `/sites/${ this._id }/stats/top-coupons-by-usage`,
+		apiNamespace: 'wpcom/v2',
+	}, query );
+};
+
+/**
  * Expose `UndocumentedSite` module
  */
 module.exports = UndocumentedSite;

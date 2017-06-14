@@ -16,20 +16,20 @@ import StatsPeriodNavigation from 'my-sites/stats/stats-period-navigation';
 import DatePicker from 'my-sites/stats/stats-date-picker';
 import Module from './store-stats-module';
 import List from './store-stats-list';
-import { topProducts } from 'woocommerce/app/store-stats/constants';
+import { topProducts, topCategories, topCoupons } from 'woocommerce/app/store-stats/constants';
 
-const titles = {
-	products: topProducts.title,
-	categories: translate( 'Categories' ),
-	coupons: translate( 'Coupons' ),
+const listType = {
+	products: topProducts,
+	categories: topCategories,
+	coupons: topCoupons,
 };
 
 class StoreStatsListView extends Component {
 	static propTypes = {
 		context: PropTypes.object.isRequired,
 		path: PropTypes.string.isRequired,
+		selectedDate: PropTypes.string,
 		siteId: PropTypes.number,
-		startDate: PropTypes.string,
 		unit: PropTypes.string.isRequired,
 		type: PropTypes.string.isRequired,
 	};
@@ -50,9 +50,7 @@ class StoreStatsListView extends Component {
 	};
 
 	render() {
-		const { siteId, slug, startDate, type, unit } = this.props;
-		const today = moment().format( 'YYYY-MM-DD' );
-		const selectedDate = startDate || today;
+		const { siteId, slug, selectedDate, type, unit } = this.props;
 		const listviewQuery = {
 			unit,
 			date: selectedDate,
@@ -61,7 +59,7 @@ class StoreStatsListView extends Component {
 		};
 		return (
 			<Main className="store-stats__list-view woocommerce" wideLayout={ true }>
-				<HeaderCake onClick={ this.goBack }>{ titles[ type ] }</HeaderCake>
+				<HeaderCake onClick={ this.goBack }>{ listType[ type ].title }</HeaderCake>
 				<StatsPeriodNavigation
 					date={ selectedDate }
 					period={ unit }
@@ -71,21 +69,21 @@ class StoreStatsListView extends Component {
 						period={ unit }
 						date={ selectedDate }
 						query={ listviewQuery }
-						statsType="statsTopSellers"
+						statsType={ listType[ type ].statsType }
 						showQueryDate
 					/>
 				</StatsPeriodNavigation>
 				<Module
 					siteId={ siteId }
-					emptyMessage={ topProducts.empty }
+					emptyMessage={ listType[ type ].empty }
 					query={ listviewQuery }
-					statType="statsTopSellers"
+					statType={ listType[ type ].statsType }
 				>
 					<List
 						siteId={ siteId }
 						values={ topProducts.values }
 						query={ listviewQuery }
-						statType="statsTopSellers"
+						statType={ listType[ type ].statsType }
 					/>
 				</Module>
 			</Main>
