@@ -25,7 +25,7 @@ class StoreStats extends Component {
 	};
 
 	render() {
-		const { siteId, unit, selectedDate, queryDate, path, slug } = this.props;
+		const { path, queryDate, selectedDate, siteId, slug, unit } = this.props;
 		const ordersQuery = {
 			unit,
 			date: queryDate,
@@ -33,7 +33,7 @@ class StoreStats extends Component {
 		};
 		return (
 			<Main className="store-stats woocommerce" wideLayout={ true }>
-				<Navigation unit={ unit } type={ type } slug={ slug } />
+				<Navigation unit={ unit } type="orders" slug={ slug } />
 				<Chart
 					path={ path }
 					query={ ordersQuery }

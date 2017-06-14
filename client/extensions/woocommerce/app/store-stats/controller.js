@@ -29,6 +29,8 @@ export default function StatsController( context ) {
 	}
 	const props = {
 		context: context,
+		type: context.params.type,
+		unit: context.params.unit,
 		path: context.pathname,
 		queryDate: getQueryDate( context ),
 		selectedDate: context.query.startDate || moment().format( 'YYYY-MM-DD' ),

@@ -12,17 +12,19 @@ import { moment, translate } from 'i18n-calypso';
 import Main from 'components/main';
 import HeaderCake from 'components/header-cake';
 import { getSelectedSiteId, getSelectedSiteSlug } from 'state/ui/selectors';
-import StoreStatsList from './store-stats-list';
 import StatsPeriodNavigation from 'my-sites/stats/stats-period-navigation';
 import DatePicker from 'my-sites/stats/stats-date-picker';
+import Module from './store-stats-module';
+import List from './store-stats-list';
+import { topProducts } from 'woocommerce/app/store-stats/constants';
 
 const titles = {
-	products: translate( 'Products' ),
+	products: topProducts.title,
 	categories: translate( 'Categories' ),
 	coupons: translate( 'Coupons' ),
 };
 
-class StoreStats extends Component {
+class StoreStatsListView extends Component {
 	static propTypes = {
 		context: PropTypes.object.isRequired,
 		path: PropTypes.string.isRequired,
@@ -48,7 +50,7 @@ class StoreStats extends Component {
 	};
 
 	render() {
-		const { path, siteId, slug, startDate, type, unit } = this.props;
+		const { siteId, slug, startDate, type, unit } = this.props;
 		const today = moment().format( 'YYYY-MM-DD' );
 		const selectedDate = startDate || today;
 		const listviewQuery = {
@@ -57,9 +59,8 @@ class StoreStats extends Component {
 			quantity: '30',
 			limit: '100'
 		};
-
 		return (
-			<Main className="store-stats woocommerce" wideLayout={ true }>
+			<Main className="store-stats__list-view woocommerce" wideLayout={ true }>
 				<HeaderCake onClick={ this.goBack }>{ titles[ type ] }</HeaderCake>
 				<StatsPeriodNavigation
 					date={ selectedDate }
@@ -74,13 +75,19 @@ class StoreStats extends Component {
 						showQueryDate
 					/>
 				</StatsPeriodNavigation>
-				<StoreStatsList
-					path={ path }
-					query={ listviewQuery }
-					selectedDate={ selectedDate }
+				<Module
 					siteId={ siteId }
-					unit={ unit }
-				/>
+					emptyMessage={ topProducts.empty }
+					query={ listviewQuery }
+					statType="statsTopSellers"
+				>
+					<List
+						siteId={ siteId }
+						values={ topProducts.values }
+						query={ listviewQuery }
+						statType="statsTopSellers"
+					/>
+				</Module>
 			</Main>
 		);
 	}
@@ -93,4 +100,4 @@ export default connect(
 			siteId: getSelectedSiteId( state ),
 		};
 	}
-)( StoreStats );
+)( StoreStatsListView );

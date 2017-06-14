@@ -726,9 +726,11 @@ export const normalizers = {
 	statsTopSellers( payload ) {
 		if ( ! payload || ! payload.data ) {
 			return [];
-		} else {
-			return payload.data;
 		}
+		return payload.data.map( d => {
+			d.total = d.sold * d.price;
+			return d;
+		} );
 	},
 
 	/*
