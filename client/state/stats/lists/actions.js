@@ -56,7 +56,8 @@ export function requestSiteStats( siteId, statType, query ) {
 			'statsOrders',
 			'statsTopSellers',
 			'statsTopCategories',
-			'statsTopCoupons'
+			'statsTopCoupons',
+			'statsTopEarners',
 		], statType );
 		const options = 'statsVideo' === statType ? query.postId : query;
 		const site = isUndocumented

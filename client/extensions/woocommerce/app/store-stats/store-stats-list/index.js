@@ -17,8 +17,8 @@ import TableItem from 'woocommerce/components/table/table-item';
 const StoreStatsList = ( { data, values } ) => {
 	const titles = (
 		<TableRow isHeader>
-			{ values.map( ( item, i ) => {
-				return <TableItem isHeader key={ i } isTitle={ 0 === i }>{ item.title }</TableItem>;
+			{ values.map( ( value, i ) => {
+				return <TableItem isHeader key={ i } isTitle={ 0 === i }>{ value.title }</TableItem>;
 			} ) }
 		</TableRow>
 	);

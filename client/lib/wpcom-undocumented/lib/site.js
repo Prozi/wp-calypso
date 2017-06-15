@@ -319,6 +319,19 @@ UndocumentedSite.prototype.statsTopSellers = function( query ) {
  * @param {object} query query parameters
  * @return {Promise} A Promise to resolve when complete.
  */
+UndocumentedSite.prototype.statsTopEarners = function( query ) {
+	return this.wpcom.req.get( {
+		path: `/sites/${ this._id }/stats/top-earners`,
+		apiNamespace: 'wpcom/v2',
+	}, query );
+};
+
+/**
+ * Requests Store top-* lists
+ *
+ * @param {object} query query parameters
+ * @return {Promise} A Promise to resolve when complete.
+ */
 UndocumentedSite.prototype.statsTopCategories = function( query ) {
 	return this.wpcom.req.get( {
 		path: `/sites/${ this._id }/stats/top-product-categories-by-usage`,

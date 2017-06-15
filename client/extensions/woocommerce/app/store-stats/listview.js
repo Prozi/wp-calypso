@@ -53,8 +53,7 @@ class StoreStatsListView extends Component {
 		const listviewQuery = {
 			unit,
 			date: selectedDate,
-			quantity: '30',
-			limit: '100'
+			quantity: 100, // Change this API to 'limit'?
 		};
 		return (
 			<Main className="store-stats__list-view woocommerce" wideLayout={ true }>
@@ -68,7 +67,7 @@ class StoreStatsListView extends Component {
 						period={ unit }
 						date={ selectedDate }
 						query={ listviewQuery }
-						statsType={ listType[ type ].statsType }
+						statsType={ listType[ type ].statType }
 						showQueryDate
 					/>
 				</StatsPeriodNavigation>
@@ -76,13 +75,13 @@ class StoreStatsListView extends Component {
 					siteId={ siteId }
 					emptyMessage={ listType[ type ].empty }
 					query={ listviewQuery }
-					statType={ listType[ type ].statsType }
+					statType={ listType[ type ].statType }
 				>
 					<List
 						siteId={ siteId }
 						values={ topProducts.values }
 						query={ listviewQuery }
-						statType={ listType[ type ].statsType }
+						statType={ listType[ type ].statType }
 					/>
 				</Module>
 			</Main>
