@@ -47,6 +47,7 @@
 		"devdocs/components-usage-stats": false,
 		"dev/test-helper": true,
 		"domains/cctlds": true,
+		"external-media": true,
 		"guided-tours/design-showcase-welcome": true,
 		"guided-tours/site-title": true,
 		"guided-tours/theme-sheet-welcome": true,
