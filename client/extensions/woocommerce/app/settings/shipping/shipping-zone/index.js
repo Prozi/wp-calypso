@@ -12,7 +12,7 @@ import { bindActionCreators } from 'redux';
 import Main from 'components/main';
 import QueryShippingZones, { areShippingZonesFullyLoaded } from 'woocommerce/components/query-shipping-zones';
 import ShippingZoneHeader from './shipping-zone-header';
-import ShippingZoneLocations from './shipping-zone-locations';
+import ShippingZoneLocationList from './shipping-zone-location-list';
 import ShippingZoneMethodList from './shipping-zone-method-list';
 import {
 	addNewShippingZone,
@@ -54,7 +54,7 @@ class Shipping extends Component {
 			<Main className={ classNames( 'shipping', className ) }>
 				<QueryShippingZones siteId={ siteId } />
 				<ShippingZoneHeader onSave={ markSaved } />
-				<ShippingZoneLocations loaded={ loaded } onChange={ markChanged } />
+				<ShippingZoneLocationList siteId={ siteId } loaded={ loaded } onChange={ markChanged } />
 				<ShippingZoneMethodList siteId={ siteId } loaded={ loaded } onChange={ markChanged } />
 			</Main>
 		);

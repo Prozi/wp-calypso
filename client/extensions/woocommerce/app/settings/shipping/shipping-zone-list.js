@@ -39,7 +39,7 @@ const ShippingZoneList = ( { site, siteId, loaded, shippingZones, translate } ) 
 	};
 
 	const addNewHref = loaded
-		? getLink( '/store/settings/shipping/:site/zone/new', site )
+		? getLink( '/store/settings/shipping/zone/:site/new', site )
 		: '#';
 
 	const onAddNewClick = ( event ) => {

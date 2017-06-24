@@ -128,7 +128,7 @@ const getStorePages = () => {
 		{
 			container: ShippingZone,
 			configKey: 'woocommerce/extension-settings-shipping',
-			path: '/store/settings/shipping/:site/zone/:zone',
+			path: '/store/settings/shipping/zone/:site/:zone',
 		},
 		{
 			container: Dashboard, // TODO use Dashboard as a placeholder until this page becomes available

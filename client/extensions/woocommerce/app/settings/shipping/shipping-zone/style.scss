@@ -1,4 +1,4 @@
-.shipping-zone__locations {
+.shipping-zone__locations-container {
 	margin-top: 58px;
 }
 
@@ -9,20 +9,24 @@
 	padding: 16px;
 }
 
+.shipping-zone__locations-container .list-item,
 .shipping-zone__methods-container .list-item {
 	border-top: 1px solid $border-ultra-light-gray;
 }
 
+.shipping-zone__locations-container .list-header + .list-item,
 .shipping-zone__methods-container .list-header + .list-item {
 	border-top: 0;
 }
 
+.shipping-zone__locations-container .list-item-field,
 .shipping-zone__methods-container .list-item-field {
 	flex-direction: row;
 	align-items: baseline;
 }
 
-.shipping-zone__methods-container {
+.shipping-zone__methods-container,
+.shipping-zone__locations-container {
 	.list-header,
 	.list-item {
 		justify-content: flex-start;
@@ -134,6 +138,39 @@
 	}
 
 	.shipping-zone__method-actions {
+		width: 20%;
+		justify-content: flex-end;
+
+		.button {
+			flex-shrink: 0;
+		}
+
+		@include breakpoint( ">660px" ) {
+			width: 15%;
+		}
+	}
+
+	.shipping-zone__location-title {
+		font-size: 14px;
+		width: 80%;
+
+		@include breakpoint( ">660px" ) {
+			width: 30%;
+		}
+	}
+
+	.shipping-zone__location-summary {
+		font-size: 14px;
+		width: 55%;
+
+		@include breakpoint( "<660px" ) {
+			width: 100%;
+			order: 4;
+			padding-top: 0px;
+		}
+	}
+
+	.shipping-zone__location-actions {
 		width: 20%;
 		justify-content: flex-end;
 
