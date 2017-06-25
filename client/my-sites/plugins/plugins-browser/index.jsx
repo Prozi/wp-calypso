@@ -7,7 +7,6 @@ import { connect } from 'react-redux';
 /**
  * Internal dependencies
  */
-import pluginsAccessControl from 'my-sites/plugins/access-control';
 import SidebarNavigation from 'my-sites/sidebar-navigation';
 import DocumentHead from 'components/data/document-head';
 import Search from 'components/search';
@@ -20,15 +19,16 @@ import NoResults from 'my-sites/no-results';
 import PluginsBrowserList from 'my-sites/plugins/plugins-browser-list';
 import PluginsListStore from 'lib/plugins/wporg-data/list-store';
 import PluginsActions from 'lib/plugins/wporg-data/actions';
-import EmptyContent from 'components/empty-content';
 import URLSearch from 'lib/mixins/url-search';
 import infiniteScroll from 'lib/mixins/infinite-scroll';
 import JetpackManageErrorPage from 'my-sites/jetpack-manage-error-page';
-import FeatureExample from 'components/feature-example';
 import { hasTouch } from 'lib/touch-detect';
 import { recordTracksEvent } from 'state/analytics/actions';
 import { getSelectedSite } from 'state/ui/selectors';
 import { isJetpackSite, canJetpackSiteManage } from 'state/sites/selectors';
+import NotAvailableError from 'my-sites/plugins/not-available-error';
+import MinimumJetpackVersionNotice from 'my-sites/plugins/minimum-jet-pack-version-notice';
+import { canCurrentUser } from 'state/selectors';
 
 const PluginsBrowser = React.createClass( {
 	_SHORT_LIST_LENGTH: 6,
@@ -92,7 +92,6 @@ const PluginsBrowser = React.createClass( {
 		} );
 		fullLists.search = PluginsListStore.getSearchList( search );
 		return {
-			accessError: pluginsAccessControl.hasRestrictedAccess(),
 			shortLists: shortLists,
 			fullLists: fullLists
 		};
@@ -278,19 +277,6 @@ const PluginsBrowser = React.createClass( {
 	},
 
 	renderAccessError() {
-		if ( this.state.accessError ) {
-			return (
-				<MainComponent>
-					{ this.renderDocumentHead() }
-					<SidebarNavigation />
-					<EmptyContent { ...this.state.accessError } />
-					{ this.state.accessError.featureExample
-						? <FeatureExample>{ this.state.accessError.featureExample }</FeatureExample>
-						: null
-					}
-				</MainComponent>
-			);
-		}
 		const { selectedSite } = this.props;
 
 		return (
@@ -311,18 +297,23 @@ const PluginsBrowser = React.createClass( {
 	render() {
 		const { selectedSite } = this.props;
 
+		if ( this.props.canNotManageSite ) {
+			return <NotAvailableError />;
+		}
+
 		const cantManage = (
 			selectedSite &&
 			this.props.isJetpackSite( selectedSite.ID ) &&
 			! this.props.canJetpackSiteManage( selectedSite.ID )
 		);
 
-		if ( ( this.state.accessError || cantManage ) && selectedSite ) {
+		if ( cantManage && selectedSite ) {
 			return this.renderAccessError( selectedSite );
 		}
 
 		return (
 			<MainComponent className="is-wide-layout">
+				<MinimumJetpackVersionNotice />
 				{ this.renderDocumentHead() }
 				<SidebarNavigation />
 				{ this.getPageHeaderView() }
@@ -339,6 +330,7 @@ export default connect(
 			selectedSite,
 			isJetpackSite: siteId => isJetpackSite( state, siteId ),
 			canJetpackSiteManage: siteId => canJetpackSiteManage( state, siteId ),
+			canNotManageSite: !! selectedSite && ! canCurrentUser( state, selectedSite.ID, 'manage_options' )
 		};
 	},
 	{
