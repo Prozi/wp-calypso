@@ -158,7 +158,7 @@ describe( 'handlers', () => {
 
 	describe( '#makeProductActionList', () => {
 		it( 'should return null when there are no edits', () => {
-			expect( makeProductActionList( null, 123, null ) ).to.equal.null;
+			expect( makeProductActionList( null, 123, undefined ) ).to.equal.null;
 		} );
 
 		it( 'should return a single product create request', () => {
@@ -177,23 +177,18 @@ describe( 'handlers', () => {
 				]
 			};
 
-			const action1 = createProduct(
+			const actionList = makeProductActionList( rootState, 123, edits );
+			expect( actionList.nextSteps.length ).to.equal( 1 );
+
+			const dispatch = spy();
+			actionList.nextSteps[ 0 ].onStep( dispatch, actionList );
+
+			expect( dispatch ).to.have.been.calledWith( createProduct(
 				123,
 				product1,
-				actionListStepSuccess( 0 ),
-				actionListStepFailure( 0, 'UNKNOWN' )
-			);
-
-			const expectedActionList = {
-				steps: [
-					{ description: 'Creating product: Product #1', action: action1 },
-				],
-				successAction: undefined,
-				failureAction: undefined,
-				clearUponComplete: true,
-			};
-
-			expect( makeProductActionList( rootState, 123, edits ) ).to.eql( expectedActionList );
+				actionListStepSuccess( actionList ),
+				actionListStepFailure( actionList )
+			) );
 		} );
 
 		it( 'should return multiple product create requests', () => {
@@ -214,31 +209,26 @@ describe( 'handlers', () => {
 				]
 			};
 
-			const action1 = createProduct(
+			const actionList = makeProductActionList( rootState, 123, edits );
+			expect( actionList.nextSteps.length ).to.equal( 2 );
+
+			const dispatch = spy();
+			actionList.nextSteps[ 0 ].onStep( dispatch, actionList );
+			actionList.nextSteps[ 1 ].onStep( dispatch, actionList );
+
+			expect( dispatch ).to.have.been.calledWith( createProduct(
 				123,
 				product1,
-				actionListStepSuccess( 0 ),
-				actionListStepFailure( 0, 'UNKNOWN' )
-			);
+				actionListStepSuccess( actionList ),
+				actionListStepFailure( actionList ),
+			) );
 
-			const action2 = createProduct(
+			expect( dispatch ).to.have.been.calledWith( createProduct(
 				123,
 				product2,
-				actionListStepSuccess( 1 ),
-				actionListStepFailure( 1, 'UNKNOWN' )
-			);
-
-			const expectedActionList = {
-				steps: [
-					{ description: 'Creating product: Product #1', action: action1 },
-					{ description: 'Creating product: Product #2', action: action2 },
-				],
-				successAction: undefined,
-				failureAction: undefined,
-				clearUponComplete: true,
-			};
-
-			expect( makeProductActionList( rootState, 123, edits ) ).to.eql( expectedActionList );
+				actionListStepSuccess( actionList ),
+				actionListStepFailure( actionList ),
+			) );
 		} );
 
 		it( 'should create an action list with success/failure actions', () => {
@@ -257,27 +247,20 @@ describe( 'handlers', () => {
 				]
 			};
 
-			const action1 = createProduct(
-				123,
-				product1,
-				actionListStepSuccess( 0 ),
-				actionListStepFailure( 0, 'UNKNOWN' )
-			);
-
 			const successAction = { type: '%%SUCCESS%%' };
+			const onSuccess = ( dispatch ) => dispatch( successAction );
+
 			const failureAction = { type: '%%FAILURE%%' };
+			const onFailure = ( dispatch ) => dispatch( failureAction );
 
-			const expectedActionList = {
-				steps: [
-					{ description: 'Creating product: Product #1', action: action1 },
-				],
-				successAction,
-				failureAction,
-				clearUponComplete: true,
-			};
+			const actionList = makeProductActionList( rootState, 123, edits, onSuccess, onFailure );
 
-			const actionList = makeProductActionList( rootState, 123, edits, successAction, failureAction );
-			expect( actionList ).to.eql( expectedActionList );
+			const dispatch = spy();
+			actionList.onSuccess( dispatch, actionList );
+			actionList.onFailure( dispatch, actionList );
+
+			expect( dispatch ).to.have.been.calledWith( successAction );
+			expect( dispatch ).to.have.been.calledWith( failureAction );
 		} );
 
 		it( 'should create only new categories referenced by the products', () => {
@@ -313,32 +296,27 @@ describe( 'handlers', () => {
 				}
 			};
 
-			const createCategory1Action = createProductCategory(
+			const edits = rootState.extensions.woocommerce.ui.products[ 123 ].edits;
+			const actionList = makeProductActionList( rootState, 123, edits );
+			expect( actionList.nextSteps.length ).to.equal( 2 );
+
+			const dispatch = spy();
+			actionList.nextSteps[ 0 ].onStep( dispatch, actionList );
+			actionList.nextSteps[ 1 ].onStep( dispatch, actionList );
+
+			expect( dispatch ).to.have.been.calledWith( createProductCategory(
 				123,
 				category1,
-				actionListStepSuccess( 0 ),
-				actionListStepFailure( 0, 'UNKNOWN' ),
-			);
+				actionListStepSuccess( actionList ),
+				actionListStepFailure( actionList ),
+			) );
 
-			const createProduct1Action = createProduct(
+			expect( dispatch ).to.have.been.calledWith( createProduct(
 				123,
 				product1,
-				actionListStepSuccess( 1 ),
-				actionListStepFailure( 1, 'UNKNOWN' ),
-			);
-
-			const expectedActionList = {
-				steps: [
-					{ description: 'Creating product category: Category 1', action: createCategory1Action },
-					{ description: 'Creating product: Product #1', action: createProduct1Action },
-				],
-				clearUponComplete: true,
-				successAction: undefined,
-				failureAction: undefined,
-			};
-
-			const actionList = makeProductActionList( rootState, 123 );
-			expect( actionList ).to.eql( expectedActionList );
+				actionListStepSuccess( actionList ),
+				actionListStepFailure( actionList ),
+			) );
 		} );
 	} );
 } );

@@ -2,7 +2,7 @@
  * External dependencies
  */
 import { translate } from 'i18n-calypso';
-import { find, isObject, isEqual } from 'lodash';
+import { find, isObject } from 'lodash';
 
 /**
  * Internal dependencies
@@ -16,9 +16,10 @@ import { getAllProductCategoryEdits } from 'woocommerce/state/ui/product-categor
 import { createProduct } from 'woocommerce/state/sites/products/actions';
 import { createProductCategory } from 'woocommerce/state/sites/product-categories/actions';
 import {
-	actionListCreate,
+	actionListStepNext,
 	actionListStepSuccess,
-	actionListStepFailure
+	actionListStepFailure,
+	actionListClear,
 } from 'woocommerce/state/action-list/actions';
 import {
 	WOOCOMMERCE_PRODUCT_CREATE,
@@ -56,11 +57,17 @@ export function handleProductCategoryEdit( { dispatch, getState }, action ) {
 	}
 }
 
-export function handleProductActionListCreate( { dispatch, getState }, action ) {
+export function handleProductActionListCreate( store, action ) {
 	const { successAction, failureAction } = action;
-	const actionList = makeProductActionList( getState(), undefined, undefined, successAction, failureAction );
 
-	dispatch( actionListCreate( actionList ) );
+	const onSuccess = ( dispatch ) => dispatch( successAction );
+	const onFailure = ( dispatch ) => {
+		dispatch( failureAction );
+		dispatch( actionListClear() );
+	};
+	const actionList = makeProductActionList( store.getState(), undefined, undefined, onSuccess, onFailure );
+
+	store.dispatch( actionListStepNext( actionList ) );
 }
 
 export function handleProductCategoryUpdated( { dispatch, getState }, action ) {
@@ -72,8 +79,7 @@ export function handleProductCategoryUpdated( { dispatch, getState }, action ) {
 		const placeholderId = originatingAction.id;
 		const realId = action.data.id;
 		const newActionList = updateActionListCategoryId( actionList, placeholderId, realId );
-		// TODO: "create" should be "set" here.
-		dispatch( actionListCreate( newActionList ) );
+		dispatch( actionListStepNext( newActionList ) );
 	}
 }
 
@@ -123,96 +129,102 @@ export function makeProductActionList(
 	rootState,
 	siteId = getSelectedSiteId( rootState ),
 	productEdits = getAllProductEdits( rootState, siteId ),
-	successAction,
-	failureAction,
+	onSuccess,
+	onFailure,
 ) {
-	let steps = [];
-
-	if ( productEdits ) {
-		steps = makeProductCategorySteps( steps, rootState, siteId, productEdits );
-		steps = makeProductSteps( steps, rootState, siteId, productEdits );
-		// TODO: variations
-		//steps = makeProductVariationSteps( steps, rootState, siteId, productEdits );
-	}
-
-	return { steps, successAction, failureAction, clearUponComplete: true };
+	return {
+		nextSteps: [
+			...makeProductCategorySteps( rootState, siteId, productEdits ),
+			...makeProductSteps( rootState, siteId, productEdits ),
+			// TODO: ...makeProductVariationSteps( rootState, siteId, productEdits ),
+		],
+		onSuccess,
+		onFailure,
+	};
 }
 
-export function makeProductCategorySteps( allSteps, rootState, siteId, productEdits ) {
-	const steps = [ ...allSteps ];
-
+export function makeProductCategorySteps( rootState, siteId, productEdits ) {
 	const creates = productEdits.creates || [];
 	const updates = productEdits.updates || [];
-	const allProductEdits = [ ...creates, ...updates ];
-
-	const newCategoryIds = allProductEdits.reduce( ( categoryIds, product ) => {
-		const categories = product.categories || [];
-
-		return categories.reduce( ( productCategoryIds, category ) => {
-			return ( isObject( category.id ) ? productCategoryIds.add( category.id ) : productCategoryIds );
-		}, categoryIds );
-	}, new Set() );
-
 	const categoryEdits = getAllProductCategoryEdits( rootState, siteId );
-	newCategoryIds.forEach( ( categoryId ) => {
-		const category = find( categoryEdits.creates, ( c ) => isEqual( categoryId, c.id ) );
-		const stepIndex = steps.length;
-		const description = translate( 'Creating product category: ' ) + category.name;
-		const action = createProductCategory(
-			siteId,
-			category,
-			actionListStepSuccess( stepIndex ),
-			actionListStepFailure( stepIndex, 'UNKNOWN' ) // error will be set by request failure.
-		);
-		steps.push( { description, action } );
+
+	// Collect all the IDs of all new categories that are referenced by a product edit.
+	const newCategoryIds = getNewCategoryIdsForEdits( [ ...creates, ...updates ] );
+
+	// Construct a step for each new category to be created.
+	const createSteps = newCategoryIds.map( ( categoryId ) => {
+		const category = find( categoryEdits.creates, { id: categoryId } );
+
+		return {
+			description: translate( 'Creating product category: ' ) + category.name,
+			onStep: ( dispatch, actionList ) => {
+				dispatch( createProductCategory(
+					siteId,
+					category,
+					actionListStepSuccess( actionList ),
+					actionListStepFailure( actionList ), // Error will be set by request code
+				) );
+			},
+		};
 	} );
 
-	/* TODO:
-	...categories.updates
-	...categories.deletes
-	*/
-
-	return steps;
+	return [
+		...createSteps,
+		// TODO: ...updateSteps,
+		// TODO: ...deleteSteps,
+	];
 }
 
-export function makeProductSteps( allSteps, rootState, siteId, productEdits ) {
-	const steps = [ ...allSteps ];
+function getNewCategoryIdsForEdits( edits ) {
+	return edits.reduce( ( categoryIds, product ) => {
+		return getCategoryIdsForProduct( product ).filter( ( id ) => {
+			return isObject( id ) && categoryIds.indexOf( id ) === -1;
+		} );
+	}, [] );
+}
+
+function getCategoryIdsForProduct( product ) {
+	const categories = product.categories || [];
+
+	return categories.map( ( category ) => {
+		return category.id;
+	} );
+}
+
+export function makeProductSteps( rootState, siteId, productEdits ) {
+	let createSteps = [];
 
 	if ( productEdits.creates ) {
-		// Each create gets its own step.
 		// TODO: Consider making these parallel actions.
-		productEdits.creates.forEach( ( product ) => {
-			const stepIndex = steps.length;
-			const description = translate( 'Creating product: ' ) + product.name;
-
-			const action = createProduct(
-				siteId,
-				product,
-				actionListStepSuccess( stepIndex ),
-				actionListStepFailure( stepIndex, 'UNKNOWN' ) // error will be set by request failure.
-			);
-
-			steps.push( { description, action } );
+		createSteps = productEdits.creates.map( ( product ) => {
+			return {
+				description: translate( 'Creating product: ' ) + product.name,
+				onStep: ( dispatch, actionList ) => {
+					dispatch( createProduct(
+						siteId,
+						product,
+						actionListStepSuccess( actionList ),
+						actionListStepFailure( actionList ), // Error will be set by request code
+					) );
+				},
+			};
 		} );
 	}
 
-	/* TODO: Add updates and deletes
-	...product.updates
-	...product.deletes
-	*/
-
-	return steps;
+	return [
+		...createSteps,
+		// TODO: ...updateSteps,
+		// TODO: ...deleteSteps,
+	];
 }
 
 /*
 export function makeProductVariationSteps( allSteps, rootState, siteId, productEdits ) {
-	const steps = [ ...allSteps ];
-
-	// TODO: ...variation.creates
-	// TODO: ...variation.updates
-	// TODO: ...variation.deletes
-
-	return steps;
+	return [
+	  // TODO: ...createSteps,
+	  // TODO: ...updateSteps,
+	  // TODO: ...deleteSteps,
+	];
 }
 */
 
