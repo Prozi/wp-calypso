@@ -70,7 +70,7 @@ const ShippingZoneEntry = ( { translate, id, name, methods, currency, loaded, si
 				{ Object.keys( methods ).map( renderMethod ) }
 			</div>
 			<div className="shipping__zones-row-actions">
-				<Button compact href={ getLink( `/store/settings/shipping/zone/:site/${ id }`, site ) }>{ translate( 'Edit' ) }</Button>
+				<Button compact href={ getLink( `/store/settings/shipping/:site/zone/${ id }`, site ) }>{ translate( 'Edit' ) }</Button>
 			</div>
 		</div>
 	);
