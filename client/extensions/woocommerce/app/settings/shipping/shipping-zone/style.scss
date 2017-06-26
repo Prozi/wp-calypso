@@ -129,10 +129,13 @@
 		line-height: 16px;
 		vertical-align: top;
 		text-transform: uppercase;
-		cursor: pointer;
 
 		@include breakpoint( ">660px" ) {
 			width: 25%;
+		}
+
+		span {
+			cursor: pointer;
 		}
 
 		.form-toggle__switch {
@@ -267,12 +270,13 @@
 	top: 30px;
 	right: 16px;
 
-	.form-label {
+	span {
 		color: $gray;
 		font-size: 11px;
 		line-height: 16px;
 		vertical-align: top;
 		text-transform: uppercase;
 		font-weight: normal;
+		cursor: pointer;
 	}
 }
