@@ -65,11 +65,18 @@
 		pointer-events: none;
 		background: $white;
 
-		.gridicon, p, a, span, button {
+		.shipping-zone__placeholder-flag, .gridicon, p, a, span, button {
 			animation: loading-fade 1.6s ease-in-out infinite;
 			background-color: lighten( $gray, 25% );
 			color: transparent;
 			cursor: default;
+		}
+
+		.shipping-zone__placeholder-flag {
+			margin-right: 4px;
+			width: 26px;
+			height: 20px;
+			border-radius: 4px;
 		}
 
 		p, span {
