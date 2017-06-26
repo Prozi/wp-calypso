@@ -34,18 +34,14 @@ class StoreStatsListView extends Component {
 	};
 
 	goBack = () => {
-		if ( typeof window !== 'undefined' && window.history.length ) {
-			window.history.back();
-		} else {
-			const pathParts = this.props.path.split( '/' );
-			const queryString = this.props.context.querystring ? '?' + this.props.context.querystring : '';
-			const pathExtra = `${ pathParts[ pathParts.length - 2 ] }/${ pathParts[ pathParts.length - 1 ] }${ queryString }`;
-			const defaultBack = `/store/stats/orders/${ pathExtra }`;
+		const pathParts = this.props.path.split( '/' );
+		const queryString = this.props.context.querystring ? '?' + this.props.context.querystring : '';
+		const pathExtra = `${ pathParts[ pathParts.length - 2 ] }/${ pathParts[ pathParts.length - 1 ] }${ queryString }`;
+		const defaultBack = `/store/stats/orders/${ pathExtra }`;
 
-			setTimeout( () => {
-				page.show( defaultBack );
-			} );
-		}
+		setTimeout( () => {
+			page.show( defaultBack );
+		} );
 	};
 
 	render() {
@@ -90,10 +86,8 @@ class StoreStatsListView extends Component {
 }
 
 export default connect(
-	state => {
-		return {
-			slug: getSelectedSiteSlug( state ),
-			siteId: getSelectedSiteId( state ),
-		};
-	}
+	state => ( {
+		slug: getSelectedSiteSlug( state ),
+		siteId: getSelectedSiteId( state ),
+	} )
 )( StoreStatsListView );
