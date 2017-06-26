@@ -20,6 +20,21 @@ import { bindActionCreatorsWithSiteId } from 'woocommerce/lib/redux-utils';
 import { getCurrentlyEditingShippingZoneLocationsList } from 'woocommerce/state/ui/shipping/zones/locations/selectors';
 
 const ShippingZoneLocationList = ( { loaded, translate, locations, onChange } ) => {
+	const getLocationDescription = ( location ) => {
+		switch ( location.type ) {
+			case 'continent':
+				return translate( 'All countries' );
+			case 'country':
+				if ( location.postcodeFilter ) {
+					return translate( 'Specific post codes' );
+				}
+
+				return translate( 'Whole country' );
+			case 'state':
+				return translate( 'Whole state' );
+		}
+	};
+
 	const renderLocation = ( location, index ) => {
 		if ( ! loaded ) {
 			return (
@@ -42,10 +57,11 @@ const ShippingZoneLocationList = ( { loaded, translate, locations, onChange } ) 
 		return (
 			<ListItem key={ index } className="shipping-zone__location" >
 				<ListItemField className="shipping-zone__location-title">
-					<LocationFlag code={ location.code } />
+					{ 'state' === location.type ? null : <LocationFlag code={ location.code } /> }
 					{ decodeEntities( location.name ) }
 				</ListItemField>
 				<ListItemField className="shipping-zone__location-summary">
+					{ getLocationDescription( location ) }
 				</ListItemField>
 				<ListItemField className="shipping-zone__location-actions">
 					<Button compact >{ translate( 'Edit' ) }</Button>
