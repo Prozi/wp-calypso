@@ -9,21 +9,27 @@ import { localize } from 'i18n-calypso';
 /**
  * Internal dependencies
  */
+import FilteredList from 'woocommerce/components/filtered-list';
+import FormCheckbox from 'components/forms/form-checkbox';
 import FormFieldSet from 'components/forms/form-fieldset';
 import FormLabel from 'components/forms/form-label';
 import FormRadio from 'components/forms/form-radio';
 import FormTextArea from 'components/forms/form-textarea';
 import { bindActionCreatorsWithSiteId } from 'woocommerce/lib/redux-utils';
+import { decodeEntities } from 'lib/formatting';
 import {
 	canLocationsBeFiltered,
 	canLocationsBeFilteredByState,
 	areLocationsFilteredByPostcode,
 	areLocationsFilteredByState,
+	getCurrentlyEditingShippingZoneStates,
 } from 'woocommerce/state/ui/shipping/zones/locations/selectors';
 import {
 	filterByWholeCountry,
 	filterByState,
 	filterByPostcode,
+	toggleStateSelected,
+	editPostcode,
 } from 'woocommerce/state/ui/shipping/zones/locations/actions';
 
 const ShippingZoneLocationDialogSettings = ( {
@@ -31,6 +37,7 @@ const ShippingZoneLocationDialogSettings = ( {
 		filteredByPostcode,
 		canFilterByState,
 		filteredByState,
+		states,
 		translate,
 		actions,
 	} ) => {
@@ -86,12 +93,39 @@ const ShippingZoneLocationDialogSettings = ( {
 		return radios;
 	};
 
+	const renderState = ( state, index ) => {
+		const { name, selected, code, disabled } = state;
+
+		const onToggle = ( event ) => {
+			event.stopPropagation();
+			if ( ! selected && disabled ) {
+				return;
+			}
+			actions.toggleStateSelected( code, ! selected );
+		};
+
+		return (
+			<li key={ index } className="shipping-zone__location-dialog-list-item" onClick={ onToggle }>
+				<FormCheckbox
+					onChange={ onToggle }
+					className="shipping-zone__location-dialog-list-item-checkbox"
+					checked={ selected }
+					disabled={ ! selected && disabled } />
+				{ decodeEntities( name ) }
+			</li>
+		);
+	};
+
 	const renderDetailedSettings = () => {
 		if ( filteredByPostcode ) {
+			const onPostcodeChange = () => ( actions.editPostcode() );
+
 			return (
 				<FormFieldSet>
 					<FormLabel>{ translate( 'Post codes' ) }</FormLabel>
-					<FormTextArea placeholder={ translate( 'List 1 postcode per line.' ) } />
+					<FormTextArea
+						onChange={ onPostcodeChange }
+						placeholder={ translate( 'List 1 postcode per line.' ) } />
 					<p>
 						{ translate( 'Postcodes containing wildcards (e.g. CB23*) ' +
 							'and fully numeric ranges (e.g. 90210...99000) are also supported.' ) }
@@ -104,7 +138,11 @@ const ShippingZoneLocationDialogSettings = ( {
 			return (
 				<FormFieldSet>
 					<FormLabel>{ translate( 'States' ) }</FormLabel>
-					<div></div>
+					<FilteredList
+						items={ states }
+						filterBy="name"
+						renderItem={ renderState }
+						placeholder={ translate( 'Filter by state from the list below' ) } />
 				</FormFieldSet>
 			);
 		}
@@ -133,12 +171,15 @@ export default connect(
 		canFilterByState: canLocationsBeFilteredByState( state ),
 		filteredByPostcode: areLocationsFilteredByPostcode( state ),
 		filteredByState: areLocationsFilteredByState( state ),
+		states: getCurrentlyEditingShippingZoneStates( state ),
 	} ),
 	( dispatch, ownProps ) => ( {
 		actions: bindActionCreatorsWithSiteId( {
 			filterByWholeCountry,
 			filterByState,
 			filterByPostcode,
+			toggleStateSelected,
+			editPostcode,
 		}, dispatch, ownProps.siteId )
 	} )
 )( localize( ShippingZoneLocationDialogSettings ) );

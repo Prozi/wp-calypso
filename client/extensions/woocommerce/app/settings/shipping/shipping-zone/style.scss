@@ -296,19 +296,6 @@
 	font-size: 18px;
 }
 
-.shipping-zone__location-dialog-list-container {
-	border: 1px solid lighten( $gray, 20% );
-	border-top: none;
-	padding: 0 14px;
-	width: calc( 100% - 30px );
-	height: 200px;
-	overflow-y: scroll;
-}
-
-.shipping-zone__location-dialog-list {
-	margin: 0;
-}
-
 .shipping-zone__location-dialog-list-item {
 	list-style: none;
 	padding: 1px 0;
