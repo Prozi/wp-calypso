@@ -8,7 +8,6 @@ import { find, isObject } from 'lodash';
  * Internal dependencies
  */
 // TODO: Remove this when product edits have siteIds.
-import { getActionList } from 'woocommerce/state/action-list/selectors';
 import { getSelectedSiteId } from 'state/ui/selectors';
 import { editProductRemoveCategory } from 'woocommerce/state/ui/products/actions';
 import { getAllProductEdits } from 'woocommerce/state/ui/products/selectors';
@@ -22,17 +21,13 @@ import {
 	actionListClear,
 } from 'woocommerce/state/action-list/actions';
 import {
-	WOOCOMMERCE_PRODUCT_CREATE,
-	WOOCOMMERCE_PRODUCT_CATEGORY_CREATE,
 	WOOCOMMERCE_PRODUCT_CATEGORY_EDIT,
 	WOOCOMMERCE_PRODUCT_ACTION_LIST_CREATE,
-	WOOCOMMERCE_PRODUCT_CATEGORY_UPDATED,
 } from 'woocommerce/state/action-types';
 
 export default {
 	[ WOOCOMMERCE_PRODUCT_CATEGORY_EDIT ]: [ handleProductCategoryEdit ],
 	[ WOOCOMMERCE_PRODUCT_ACTION_LIST_CREATE ]: [ handleProductActionListCreate ],
-	[ WOOCOMMERCE_PRODUCT_CATEGORY_UPDATED ]: [ handleProductCategoryUpdated ],
 };
 
 export function handleProductCategoryEdit( { dispatch, getState }, action ) {
@@ -70,49 +65,6 @@ export function handleProductActionListCreate( store, action ) {
 	store.dispatch( actionListStepNext( actionList ) );
 }
 
-export function handleProductCategoryUpdated( { dispatch, getState }, action ) {
-	const { originatingAction } = action;
-	const actionList = getActionList( getState() );
-
-	if ( WOOCOMMERCE_PRODUCT_CATEGORY_CREATE === originatingAction.type ) {
-		// A category was created, let's update any placeholders for it that we have.
-		const placeholderId = originatingAction.id;
-		const realId = action.data.id;
-		const newActionList = updateActionListCategoryId( actionList, placeholderId, realId );
-		dispatch( actionListStepNext( newActionList ) );
-	}
-}
-
-const updateProperty = ( propertyName, updater ) => ( object ) => {
-	return { ...object, [ propertyName ]: updater( object[ propertyName ] ) };
-};
-
-const replaceProperty = ( propertyName, oldValue, newValue ) => {
-	return updateProperty( propertyName, ( value ) => {
-		return ( value === oldValue ? newValue : value );
-	} );
-};
-
-export function updateActionListCategoryId( actionList, placeholderId, realId ) {
-	const updateCategory = replaceProperty( 'id', placeholderId, realId );
-
-	const updateCategories = updateProperty( 'categories', ( categories ) => {
-		return ( categories ? categories.map( updateCategory ) : undefined );
-	} );
-
-	const updateStep = updateProperty( 'action', ( action ) => {
-		if ( WOOCOMMERCE_PRODUCT_CREATE === action.type ) {
-			return updateProperty( 'product', updateCategories )( action );
-		}
-		return action;
-	} );
-
-	return {
-		...actionList,
-		steps: actionList.steps.map( updateStep ),
-	};
-}
-
 /**
  * Makes a product Action List object based on current product edits.
  *
@@ -143,6 +95,20 @@ export function makeProductActionList(
 	};
 }
 
+const categoryCreated = ( actionList ) => ( dispatch, getState, sentData, receivedData ) => {
+	const categoryIdMapping = {
+		...actionList.categoryIdMapping,
+		[ sentData.id.placeholder ]: receivedData.id,
+	};
+
+	const newActionList = {
+		...actionList,
+		categoryIdMapping,
+	};
+
+	dispatch( actionListStepSuccess( newActionList ) );
+};
+
 export function makeProductCategorySteps( rootState, siteId, productEdits ) {
 	const creates = productEdits.creates || [];
 	const updates = productEdits.updates || [];
@@ -161,7 +127,7 @@ export function makeProductCategorySteps( rootState, siteId, productEdits ) {
 				dispatch( createProductCategory(
 					siteId,
 					category,
-					actionListStepSuccess( actionList ),
+					categoryCreated( actionList ),
 					actionListStepFailure( actionList ), // Error will be set by request code
 				) );
 			},
@@ -174,6 +140,7 @@ export function makeProductCategorySteps( rootState, siteId, productEdits ) {
 		// TODO: ...deleteSteps,
 	];
 }
+
 
 function getNewCategoryIdsForEdits( edits ) {
 	return edits.reduce( ( categoryIds, product ) => {
@@ -200,9 +167,11 @@ export function makeProductSteps( rootState, siteId, productEdits ) {
 			return {
 				description: translate( 'Creating product: ' ) + product.name,
 				onStep: ( dispatch, actionList ) => {
+					const { categoryIdMapping } = actionList;
+
 					dispatch( createProduct(
 						siteId,
-						product,
+						getCorrectedProduct( product, categoryIdMapping ),
 						actionListStepSuccess( actionList ),
 						actionListStepFailure( actionList ), // Error will be set by request code
 					) );
@@ -216,6 +185,34 @@ export function makeProductSteps( rootState, siteId, productEdits ) {
 		// TODO: ...updateSteps,
 		// TODO: ...deleteSteps,
 	];
+}
+
+function getCorrectedProduct( product, categoryIdMapping ) {
+	const { categories } = product;
+
+	if ( categories ) {
+		const newCategories = categories.map(
+			( category ) => getCorrectedCategory( category, categoryIdMapping ) );
+
+		return {
+			...product,
+			categories: newCategories,
+		};
+	}
+
+	return product;
+}
+
+function getCorrectedCategory( category, categoryIdMapping ) {
+	const updatedId = isObject( category ) && categoryIdMapping[ category.id.placeholder ];
+
+	if ( updatedId ) {
+		return {
+			...category,
+			id: updatedId,
+		};
+	}
+	return category;
 }
 
 /*
