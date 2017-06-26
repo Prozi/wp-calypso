@@ -15,18 +15,19 @@ import ListItem from 'woocommerce/components/list/list-item';
 import ListHeader from 'woocommerce/components/list/list-header';
 import ListItemField from 'woocommerce/components/list/list-item-field';
 import LocationFlag from 'woocommerce/components/location-flag';
+import ShippingZoneLocationDialog from './shipping-zone-location-dialog';
 import { decodeEntities } from 'lib/formatting';
 import { bindActionCreatorsWithSiteId } from 'woocommerce/lib/redux-utils';
 import { getCurrentlyEditingShippingZoneLocationsList } from 'woocommerce/state/ui/shipping/zones/locations/selectors';
 
-const ShippingZoneLocationList = ( { loaded, translate, locations, onChange } ) => {
+const ShippingZoneLocationList = ( { siteId, loaded, translate, locations, onChange } ) => {
 	const getLocationDescription = ( location ) => {
 		switch ( location.type ) {
 			case 'continent':
 				return translate( 'All countries' );
 			case 'country':
 				if ( location.postcodeFilter ) {
-					return translate( 'Specific post codes' );
+					return translate( 'Specific postcodes' );
 				}
 
 				return translate( 'Whole country' );
@@ -57,7 +58,7 @@ const ShippingZoneLocationList = ( { loaded, translate, locations, onChange } ) 
 		return (
 			<ListItem key={ index } className="shipping-zone__location" >
 				<ListItemField className="shipping-zone__location-title">
-					{ 'state' === location.type ? null : <LocationFlag code={ location.code } /> }
+					{ 'country' === location.type ? <LocationFlag code={ location.code } /> : null }
 					{ decodeEntities( location.name ) }
 				</ListItemField>
 				<ListItemField className="shipping-zone__location-summary">
@@ -97,6 +98,7 @@ const ShippingZoneLocationList = ( { loaded, translate, locations, onChange } ) 
 				</ListHeader>
 				{ locationsToRender.map( renderLocation ) }
 			</List>
+			<ShippingZoneLocationDialog siteId={ siteId } onChange={ onChange } isVisible={ loaded } />
 		</div>
 	);
 };

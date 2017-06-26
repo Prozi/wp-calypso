@@ -315,38 +315,24 @@ export const getCurrentlyEditingShippingZoneCountries = ( state, siteId = getSel
 
 	getContinents( state, siteId ).forEach( ( { code: continentCode, name: continentName } ) => {
 		const continentSelected = selectedContinents.has( continentCode );
-		const continentCountries = getCountries( state, continentCode, siteId );
-		let selectedCountryCount = 0;
-
-		const continent = {
+		locationsList.push( {
 			code: continentCode,
 			name: continentName,
 			selected: continentSelected,
 			disabled: Boolean( forbiddenContinents[ continentCode ] ),
 			ownerZoneId: forbiddenContinents[ continentCode ],
-			countryCount: continentCountries.length,
 			type: 'continent',
-		};
-
-		continentCountries.forEach( ( { code: countryCode, name: countryName } ) => {
-			const countrySelected = continentSelected || selectedCountries.has( countryCode );
-			if ( countrySelected ) {
-				selectedCountryCount++;
-			}
-
+		} );
+		getCountries( state, continentCode, siteId ).forEach( ( { code: countryCode, name: countryName } ) => {
 			locationsList.push( {
 				code: countryCode,
 				name: countryName,
-				continentSelected,
-				selected: countrySelected,
+				selected: continentSelected || selectedCountries.has( countryCode ),
 				disabled: ! allowSelectingForbiddenCountries && Boolean( forbiddenCountries[ countryCode ] ),
 				ownerZoneId: forbiddenCountries[ countryCode ],
 				type: 'country',
 			} );
 		} );
-
-		continent.selectedCountryCount = selectedCountryCount;
-		locationsList.push( continent );
 	} );
 	return locationsList;
 };
