@@ -1,4 +1,5 @@
-.shipping-zone__locations-container {
+.sticky-panel + .shipping-zone__locations-container,
+.sticky-panel + .shipping-zone__methods-container {
 	margin-top: 58px;
 }
 

@@ -48,13 +48,16 @@ class Shipping extends Component {
 	}
 
 	render() {
-		const { siteId, className, loaded, markSaved, markChanged } = this.props;
+		const { siteId, className, loaded, markSaved, markChanged, params } = this.props;
+		const renderLocations = 0 !== Number( params.zone );
 
 		return (
 			<Main className={ classNames( 'shipping', className ) }>
 				<QueryShippingZones siteId={ siteId } />
 				<ShippingZoneHeader onSave={ markSaved } />
-				<ShippingZoneLocationList siteId={ siteId } loaded={ loaded } onChange={ markChanged } />
+				{ renderLocations
+					? <ShippingZoneLocationList siteId={ siteId } loaded={ loaded } onChange={ markChanged } />
+					: null }
 				<ShippingZoneMethodList siteId={ siteId } loaded={ loaded } onChange={ markChanged } />
 			</Main>
 		);
